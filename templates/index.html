@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contact Management System</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        form {
+            margin-bottom: 20px;
+        }
+        input, button {
+            margin: 5px;
+        }
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        li {
+            margin: 10px 0;
+        }
+        .contact {
+            display: flex;
+            justify-content: space-between;
+        }
+        .contact button {
+            margin-left: 10px;
+        }
+    </style>
+    <script>
+        async function fetchContacts() {
+            const response = await fetch('/contacts');
+            const contacts = await response.json();
+            const contactList = document.getElementById('contactList');
+            contactList.innerHTML = '';
+            contacts.forEach((contact, index) => {
+                const li = document.createElement('li');
+                li.className = 'contact';
+                li.innerHTML = `Name: ${contact.name}, Phone: ${contact.phone}, Email: ${contact.email} 
+                    <div>
+                        <button onclick="editContact(${index})">Edit</button>
+                        <button onclick="deleteContact(${index})">Delete</button>
+                    </div>`;
+                contactList.appendChild(li);
+            });
+        }
+
+        async function addContact() {
+            const name = document.getElementById('name').value;
+            const phone = document.getElementById('phone').value;
+            const email = document.getElementById('email').value;
+
+            await fetch('/contacts', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({name, phone, email})
+            });
+
+            fetchContacts();
+        }
+
+        async function editContact(index) {
+            const name = prompt('Enter new name:');
+            const phone = prompt('Enter new phone:');
+            const email = prompt('Enter new email:');
+
+            await fetch(`/contacts/${index}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({name, phone, email})
+            });
+
+            fetchContacts();
+        }
+
+        async function deleteContact(index) {
+            await fetch(`/contacts/${index}`, {
+                method: 'DELETE'
+            });
+
+            fetchContacts();
+        }
+
+        document.addEventListener('DOMContentLoaded', fetchContacts);
+    </script>
+</head>
+<body>
+    <h1>Contact Management System</h1>
+    <form onsubmit="event.preventDefault(); addContact();">
+        <input type="text" id="name" placeholder="Name" required>
+        <input type="text" id="phone" placeholder="Phone" required>
+        <input type="email" id="email" placeholder="Email" required>
+        <button type="submit">Add Contact</button>
+    </form>
+    <ul id="contactList"></ul>
+</body>
+</html>
